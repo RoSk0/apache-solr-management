@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Configuration.
+SOLR_HOME=/home/rosko/bin/apache-solr
+CORE_NAME=$1
+
+if [ -z "$CORE_NAME" ] ; then
+  echo "Don't forget to provide SOLR core name."
+  exit 1
+fi
+
+if [[ "$CORE_NAME" =~ [^a-zA-Z0-9\_\-]+ ]]; then
+echo "Core name must contain only alphanumeric, - and _."
+  exit 1
+fi
+
+cd $SOLR_HOME
+cp -r core-template/ solr/$CORE_NAME
+echo "name=$CORE_NAME" > solr/$CORE_NAME/core.properties
+solr restart

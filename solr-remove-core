@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# Configuration.
+SOLR_HOME=/home/rosko/bin/apache-solr
+NO_CONFIRM=0
+
+# Execute getopt
+ARGS=$(getopt -o y -l "yes" -n "$0" -- "$@");
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$ARGS";
+
+while true; do
+  case "$1" in
+    -y|--yes)
+      shift;
+      NO_CONFIRM=1
+      ;;
+    --)
+      shift;
+      break;
+      ;;
+  esac
+done
+
+CORE_NAME=$1
+CORE_DIR=$SOLR_HOME/solr/$1
+
+# Checking empty core name.
+if [ -z "$CORE_NAME" ] ; then
+  echo "Don't forget to provide SOLR core name."
+  exit 1
+fi
+
+# Checking core directory exists.
+if [ ! -d $CORE_DIR ] ; then
+  echo "You specified wrong core name. Directory '$CORE_DIR' doesn't exists!"
+  exit 1
+fi
+
+# Helper to confirm destructive action.
+confirm () {
+    # call with a prompt string or use a default
+    read -r -p "${1:-Are you sure? [y/N]} " response
+    case $response in
+        [yY][eE][sS]|[yY])
+            true
+            ;;
+        *)
+            false
+            ;;
+    esac
+}
+
+echo "Removig $CORE_DIR!!!"
+if [ $NO_CONFIRM == 1 ]; then
+  rm -rf $CORE_DIR && solr restart
+else
+  confirm && rm -rf $CORE_DIR && solr restart
+fi
